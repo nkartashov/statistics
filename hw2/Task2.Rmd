@@ -1,0 +1,59 @@
+---
+title: "Task2"
+author: "Nikita Kartashov"
+date: "30 October 2014"
+output: html_document
+---
+```{r}
+library(MASS)
+library(lattice)
+library(latticeExtra)
+d <- read.csv2(file = "I.csv")
+d <- subset(d, select = c(PPIND, NEW10, FULLTIME, IN_STATE, ROOM, ADD_FEE,
+                            PH_D, GRADUAT, SAL_FULL, NUM_FULL))
+d$PPIND <- factor(d$PPIND, labels = c("Public", "Private"))
+d <- na.exclude(d)
+priv <- subset(d, PPIND == "Private")
+model <- lm(NEW10 ~ FULLTIME + log(IN_STATE) + log(ROOM) + log(ADD_FEE) + log(SAL_FULL) + PH_D + GRADUAT + NUM_FULL, data = priv)
+summary(model)
+```
+Процент выпускников звучит как правдаподобный предиктор, но у нас есть еще много незначимых, пробуем их выкинуть.
+```{r}
+model.cleaned <- stepAIC(model)
+summary(model.cleaned)
+```
+Попробуем выкинуть последний незначимый параметр.
+```{r}
+model.cleaned <- update(model.cleaned, . ~ . - log(IN_STATE))
+AIC(model.cleaned)
+summary(model.cleaned)
+```
+Получилась странная модель, которая может говорить нам о двух вещах
+* Процент окончивших вуз положительно влияет на кол-во тех, кто хочет в него попасть
+* По какой-то причине, зарплата полных профессоров также мотивирует поступать в вуз, я бы подумал, что зарплата полных профессоров коррелирована с каким-то другим параметром, например, с общим кол-вом денег которые инвестируются в институт и вот он-то уже и привлекает поступающих
+
+Теперь попытаемся построить общую модель взяв значимые параметры из моделей обоих видов.
+```{r}
+contrasts(d$PPIND) <- contr.sum
+model <- lm(NEW10 ~ (log(IN_STATE) + log(ADD_FEE) + GRADUAT + NUM_FULL + log(SAL_FULL)) * PPIND, data = d)
+summary(model)
+```
+NUM_FULL и его взаимодействие незначимы - уберем их
+```{r}
+model <- update(model, . ~ . - PPIND * NUM_FULL)
+summary(model)
+```
+Пришли к тому же с ADD_FEE
+```{r}
+model <- update(model, . ~ . - PPIND * log(ADD_FEE))
+summary(model)
+```
+Мы назначили частным институтам значение - 1, остальным - -1. Самым значимым остается процент окончивших, кроме этого мы можем сказать, что в частных институтах большую роль играет процент окончивших, возможно потому, что когда под вопросом деньги отчисляются неохотнее. Также можно заметить, что в государственных институтах деньги служат более отталкивающим критерием, чем в частных (коэффициент того же знака, но больше) и так же как и с частными, поступающие сильно берут во внимание (большой коэффициент) зарплату полных профессоров, наверное, как метрику их компетентности.
+
+
+
+
+
+
+
+

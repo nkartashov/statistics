@@ -1,0 +1,39 @@
+---
+title: "hw1"
+author: "Nikita Kartashov"
+date: "31 October 2014"
+output: html_document
+---
+
+```{r}
+library(lattice)
+
+samples <- sample(read.csv('Advertising.csv'))
+sample_number <- nrow(samples)
+training_coef <- 0.66
+test_coef <- 1 - training_coef
+bound <- round(training_coef * sample_number)
+training_set <- samples[1 : bound, ]
+test_set <- samples[bound + 1 : sample_number, ]
+
+rse <- function(residuals) {
+  sum((residuals)^2 * 1.0 / (length(residuals) - 2))
+}
+
+investigateModel <- function (formula) {
+  model <- lm(formula, training_set)
+  cat("AIC: ", AIC(model), "\n")
+  cat("RSE: ", rse(model$residuals), "\n")
+  print(summary(model))
+  predicted <- predict(model, test_set)
+  xyplot(test_set$Sales ~ predicted, ylab = deparse(formula), type = c("p", "smooth"))
+}
+
+investigateModel(Sales ~ 1)
+investigateModel(Sales ~ TV + Radio + Newspaper)
+investigateModel(Sales ~ TV + Radio)
+investigateModel(Sales ~ TV)
+investigateModel(Sales ~ (TV + Radio + Newspaper) ^ 2)
+investigateModel(Sales ~ TV * Radio + TV + Radio + I(TV ^ 2))
+```
+
