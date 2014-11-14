@@ -8,7 +8,8 @@ output: html_document
 ```{r}
 library(lattice)
 
-samples <- sample(read.csv('Advertising.csv'))
+not_random_samples <- sample(read.csv('Advertising.csv'))
+samples <- sample(nrow(not_random_samples)),]
 sample_number <- nrow(samples)
 training_coef <- 0.66
 test_coef <- 1 - training_coef
