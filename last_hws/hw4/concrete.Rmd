@@ -1,0 +1,79 @@
+---
+title: "concrete"
+author: "Nikita Kartashov"
+date: "18 January 2015"
+output: html_document
+---
+
+```{r}
+library(knitr)
+library(lattice)
+library(MASS)
+library(e1071)
+library(corrplot)
+library(latticeExtra)
+```
+Прочтем данные, сделаем названия покороче и выведем на экран все, что можно про то, что у нас на руках.
+
+```{r}
+plotVariable <- function(param) {
+  formula <- reformulate(termlabels = param, response = 'Y')
+  xyplot(formula, panel=function(...) {  
+  panel.xyplot(...)
+  panel.loess(...)
+  }, data = data.concrete, xlab = param, ylab = "Y")
+}
+
+plotVariables <- function() {
+  for (i in colnames(data.concrete)[-9]) { 
+    print(plotVariable(i)) 
+    }
+}
+
+```
+```{r}
+estimateModel <- function(formula) {
+  model <- lm(formula, data.concrete)
+  print(AIC(model))
+  print(summary(model))
+  print(tune(lm, as.formula(model), data = data.concrete, tunecontrol = tune.control(sampling = "cross")))
+}
+
+```
+
+```{r}
+data.concrete <- read.csv("Concrete_Data.csv", comment.char = '#')
+names(data.concrete) <- c("Cem", "Slag", "Ash", "Wat", "Plast", "CorAgg", "FinAgg", "Age", "Y")
+summary(data.concrete)
+plotVariables()
+corrplot.mixed(cor(data.concrete), tl.cex=1.5)
+```
+
+Видим: линейные зависимости прочности от Cement и Superplasticizer, скопления образцов по параметрам на многих графиках, неравномерность образцов по Age, корреляцию Water и Superplasticizer, прочности и Cement. Попробуем построить модели и оценить их качество.
+
+```{r}
+estimateModel(Y ~ Age + Cem + Wat + Plast + Slag + Ash + CorAgg + FinAgg)
+estimateModel(Y ~ Age + Cem + Wat + Plast + Slag + Ash)
+estimateModel(Y ~ Age + Cem * Wat + Plast + Slag + Ash)
+estimateModel(Y ~ Age + Cem * Wat + Slag + Ash)
+estimateModel(Y ~ Age + Cem + Wat + Slag + Ash)
+```
+
+Из просмотренных моделей выберем самую лучшую по КВ (вторую) и пойдем с ней дальше. Образцы у нас распределены по времени неравномерно, предполагая нелинейную зависимость от Age, прологарифмируем его.
+
+```{r}
+estimateModel(Y ~ log(Age) + Cem + Wat + Plast + Slag + Ash)
+```
+
+Посмотрим, что у Ash, Plast и Slag на графиках видно большое кол-во образцов с конкретным значением параметра в 0 (у Wat тоже, но у него вокруг конкретных значений еще и другие данные)
+
+```{r}
+data.concrete$PlastBord <- data.concrete$Plast > 0
+data.concrete$AshBord <- data.concrete$Ash > 0
+data.concrete$SlagBord <- data.concrete$Slag > 0
+estimateModel(Y ~ log(Age) + Cem + Wat + PlastBord + Slag + Ash)
+estimateModel(Y ~ log(Age) + Cem + Wat + PlastBord + Slag + Ash)
+estimateModel(Y ~ log(Age) + Cem + Wat + AshBord + PlastBord + Slag)
+```
+
+Из финальной модели видим, что в прочности бетона играют роль наличие Fly Ash и Superplasticizer, а также присутствует нелинейная зависимость от Age. 
