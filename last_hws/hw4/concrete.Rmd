@@ -42,7 +42,7 @@ estimateModel <- function(formula) {
 ```
 
 ```{r}
-data.concrete <- read.csv("Concrete_Data.csv", comment.char = '#')
+data.concrete <- read.csv("data/Concrete_Data.csv", comment.char = '#')
 names(data.concrete) <- c("Cem", "Slag", "Ash", "Wat", "Plast", "CorAgg", "FinAgg", "Age", "Y")
 summary(data.concrete)
 plotVariables()

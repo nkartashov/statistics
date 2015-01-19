@@ -86,7 +86,7 @@ plotVariables &lt;- function() {
   print(summary(model))
   print(tune(lm, as.formula(model), data = data.concrete, tunecontrol = tune.control(sampling = &quot;cross&quot;)))
 }</code></pre>
-<pre class="r"><code>data.concrete &lt;- read.csv(&quot;Concrete_Data.csv&quot;, comment.char = '#')
+<pre class="r"><code>data.concrete &lt;- read.csv(&quot;data/Concrete_Data.csv&quot;, comment.char = '#')
 names(data.concrete) &lt;- c(&quot;Cem&quot;, &quot;Slag&quot;, &quot;Ash&quot;, &quot;Wat&quot;, &quot;Plast&quot;, &quot;CorAgg&quot;, &quot;FinAgg&quot;, &quot;Age&quot;, &quot;Y&quot;)
 summary(data.concrete)</code></pre>
 <pre><code>##       Cem             Slag            Ash              Wat       
@@ -144,7 +144,7 @@ summary(data.concrete)</code></pre>
 ## F-statistic: 204.3 on 8 and 1021 DF,  p-value: &lt; 2.2e-16
 ## 
 ## 
-## Error estimation of 'lm' using 10-fold cross validation: 109.1326</code></pre>
+## Error estimation of 'lm' using 10-fold cross validation: 110.3808</code></pre>
 <pre class="r"><code>estimateModel(Y ~ Age + Cem + Wat + Plast + Slag + Ash)</code></pre>
 <pre><code>## [1] 7757.928
 ## 
@@ -172,7 +172,7 @@ summary(data.concrete)</code></pre>
 ## F-statistic: 271.2 on 6 and 1023 DF,  p-value: &lt; 2.2e-16
 ## 
 ## 
-## Error estimation of 'lm' using 10-fold cross validation: 109.2711</code></pre>
+## Error estimation of 'lm' using 10-fold cross validation: 108.732</code></pre>
 <pre class="r"><code>estimateModel(Y ~ Age + Cem * Wat + Plast + Slag + Ash)</code></pre>
 <pre><code>## [1] 7759.766
 ## 
@@ -201,7 +201,7 @@ summary(data.concrete)</code></pre>
 ## F-statistic: 232.3 on 7 and 1022 DF,  p-value: &lt; 2.2e-16
 ## 
 ## 
-## Error estimation of 'lm' using 10-fold cross validation: 109.4973</code></pre>
+## Error estimation of 'lm' using 10-fold cross validation: 109.3481</code></pre>
 <pre class="r"><code>estimateModel(Y ~ Age + Cem * Wat + Slag + Ash)</code></pre>
 <pre><code>## [1] 7764.35
 ## 
@@ -229,7 +229,7 @@ summary(data.concrete)</code></pre>
 ## F-statistic: 268.5 on 6 and 1023 DF,  p-value: &lt; 2.2e-16
 ## 
 ## 
-## Error estimation of 'lm' using 10-fold cross validation: 109.9052</code></pre>
+## Error estimation of 'lm' using 10-fold cross validation: 110.1943</code></pre>
 <pre class="r"><code>estimateModel(Y ~ Age + Cem + Wat + Slag + Ash)</code></pre>
 <pre><code>## [1] 7764.026
 ## 
@@ -256,7 +256,7 @@ summary(data.concrete)</code></pre>
 ## F-statistic: 321.6 on 5 and 1024 DF,  p-value: &lt; 2.2e-16
 ## 
 ## 
-## Error estimation of 'lm' using 10-fold cross validation: 110.3719</code></pre>
+## Error estimation of 'lm' using 10-fold cross validation: 110.3528</code></pre>
 <p>Из просмотренных моделей выберем самую лучшую по КВ (вторую) и пойдем с ней дальше. Образцы у нас распределены по времени неравномерно, предполагая нелинейную зависимость от Age, прологарифмируем его.</p>
 <pre class="r"><code>estimateModel(Y ~ log(Age) + Cem + Wat + Plast + Slag + Ash)</code></pre>
 <pre><code>## [1] 7005.439
@@ -285,7 +285,7 @@ summary(data.concrete)</code></pre>
 ## F-statistic: 746.7 on 6 and 1023 DF,  p-value: &lt; 2.2e-16
 ## 
 ## 
-## Error estimation of 'lm' using 10-fold cross validation: 52.74396</code></pre>
+## Error estimation of 'lm' using 10-fold cross validation: 52.77087</code></pre>
 <p>Посмотрим, что у Ash, Plast и Slag на графиках видно большое кол-во образцов с конкретным значением параметра в 0 (у Wat тоже, но у него вокруг конкретных значений еще и другие данные)</p>
 <pre class="r"><code>data.concrete$PlastBord &lt;- data.concrete$Plast &gt; 0
 data.concrete$AshBord &lt;- data.concrete$Ash &gt; 0
@@ -317,7 +317,7 @@ estimateModel(Y ~ log(Age) + Cem + Wat + PlastBord + Slag + Ash)</code></pre>
 ## F-statistic: 803.8 on 6 and 1023 DF,  p-value: &lt; 2.2e-16
 ## 
 ## 
-## Error estimation of 'lm' using 10-fold cross validation: 49.52405</code></pre>
+## Error estimation of 'lm' using 10-fold cross validation: 49.40481</code></pre>
 <pre class="r"><code>estimateModel(Y ~ log(Age) + Cem + Wat + PlastBord + Slag + Ash)</code></pre>
 <pre><code>## [1] 6943.22
 ## 
@@ -345,7 +345,7 @@ estimateModel(Y ~ log(Age) + Cem + Wat + PlastBord + Slag + Ash)</code></pre>
 ## F-statistic: 803.8 on 6 and 1023 DF,  p-value: &lt; 2.2e-16
 ## 
 ## 
-## Error estimation of 'lm' using 10-fold cross validation: 49.37174</code></pre>
+## Error estimation of 'lm' using 10-fold cross validation: 49.50122</code></pre>
 <pre class="r"><code>estimateModel(Y ~ log(Age) + Cem + Wat + AshBord + PlastBord + Slag)</code></pre>
 <pre><code>## [1] 6927.354
 ## 
@@ -373,7 +373,7 @@ estimateModel(Y ~ log(Age) + Cem + Wat + PlastBord + Slag + Ash)</code></pre>
 ## F-statistic: 818.9 on 6 and 1023 DF,  p-value: &lt; 2.2e-16
 ## 
 ## 
-## Error estimation of 'lm' using 10-fold cross validation: 48.88978</code></pre>
+## Error estimation of 'lm' using 10-fold cross validation: 48.77925</code></pre>
 <p>Из финальной модели видим, что в прочности бетона играют роль наличие Fly Ash и Superplasticizer, а также присутствует нелинейная зависимость от Age.</p>
 
 
