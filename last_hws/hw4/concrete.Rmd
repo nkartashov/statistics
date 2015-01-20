@@ -62,7 +62,10 @@ estimateModel(Y ~ Age + Cem + Wat + Slag + Ash)
 Из просмотренных моделей выберем самую лучшую по КВ (вторую) и пойдем с ней дальше. Образцы у нас распределены по времени неравномерно, предполагая нелинейную зависимость от Age, прологарифмируем его.
 
 ```{r}
-estimateModel(Y ~ log(Age) + Cem + Wat + Plast + Slag + Ash)
+# data.concrete$Age <- log(data.concrete$Age)
+data.concrete$Age <- factor(data.concrete$Age)
+contrasts(data.concrete$Age) <- contr.helmert
+estimateModel(Y ~ Age + Cem + Wat + Plast + Slag + Ash)
 ```
 
 Посмотрим, что у Ash, Plast и Slag на графиках видно большое кол-во образцов с конкретным значением параметра в 0 (у Wat тоже, но у него вокруг конкретных значений еще и другие данные)
@@ -71,9 +74,9 @@ estimateModel(Y ~ log(Age) + Cem + Wat + Plast + Slag + Ash)
 data.concrete$PlastBord <- data.concrete$Plast > 0
 data.concrete$AshBord <- data.concrete$Ash > 0
 data.concrete$SlagBord <- data.concrete$Slag > 0
-estimateModel(Y ~ log(Age) + Cem + Wat + PlastBord + Slag + Ash)
-estimateModel(Y ~ log(Age) + Cem + Wat + PlastBord + Slag + Ash)
-estimateModel(Y ~ log(Age) + Cem + Wat + AshBord + PlastBord + Slag)
+estimateModel(Y ~ Age + Cem + Wat + PlastBord + Slag + Ash)
+estimateModel(Y ~ Age + Cem + Wat + PlastBord + Slag + Ash)
+estimateModel(Y ~ Age + Cem + Wat + AshBord + PlastBord + Slag)
 ```
 
 Из финальной модели видим, что в прочности бетона играют роль наличие Fly Ash и Superplasticizer, а также присутствует нелинейная зависимость от Age. 

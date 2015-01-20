@@ -144,7 +144,7 @@ summary(data.concrete)</code></pre>
 ## F-statistic: 204.3 on 8 and 1021 DF,  p-value: &lt; 2.2e-16
 ## 
 ## 
-## Error estimation of 'lm' using 10-fold cross validation: 110.3808</code></pre>
+## Error estimation of 'lm' using 10-fold cross validation: 110.0687</code></pre>
 <pre class="r"><code>estimateModel(Y ~ Age + Cem + Wat + Plast + Slag + Ash)</code></pre>
 <pre><code>## [1] 7757.928
 ## 
@@ -172,7 +172,7 @@ summary(data.concrete)</code></pre>
 ## F-statistic: 271.2 on 6 and 1023 DF,  p-value: &lt; 2.2e-16
 ## 
 ## 
-## Error estimation of 'lm' using 10-fold cross validation: 108.732</code></pre>
+## Error estimation of 'lm' using 10-fold cross validation: 109.1914</code></pre>
 <pre class="r"><code>estimateModel(Y ~ Age + Cem * Wat + Plast + Slag + Ash)</code></pre>
 <pre><code>## [1] 7759.766
 ## 
@@ -201,7 +201,7 @@ summary(data.concrete)</code></pre>
 ## F-statistic: 232.3 on 7 and 1022 DF,  p-value: &lt; 2.2e-16
 ## 
 ## 
-## Error estimation of 'lm' using 10-fold cross validation: 109.3481</code></pre>
+## Error estimation of 'lm' using 10-fold cross validation: 109.5476</code></pre>
 <pre class="r"><code>estimateModel(Y ~ Age + Cem * Wat + Slag + Ash)</code></pre>
 <pre><code>## [1] 7764.35
 ## 
@@ -229,7 +229,7 @@ summary(data.concrete)</code></pre>
 ## F-statistic: 268.5 on 6 and 1023 DF,  p-value: &lt; 2.2e-16
 ## 
 ## 
-## Error estimation of 'lm' using 10-fold cross validation: 110.1943</code></pre>
+## Error estimation of 'lm' using 10-fold cross validation: 109.7101</code></pre>
 <pre class="r"><code>estimateModel(Y ~ Age + Cem + Wat + Slag + Ash)</code></pre>
 <pre><code>## [1] 7764.026
 ## 
@@ -256,124 +256,175 @@ summary(data.concrete)</code></pre>
 ## F-statistic: 321.6 on 5 and 1024 DF,  p-value: &lt; 2.2e-16
 ## 
 ## 
-## Error estimation of 'lm' using 10-fold cross validation: 110.3528</code></pre>
+## Error estimation of 'lm' using 10-fold cross validation: 111.2246</code></pre>
 <p>Из просмотренных моделей выберем самую лучшую по КВ (вторую) и пойдем с ней дальше. Образцы у нас распределены по времени неравномерно, предполагая нелинейную зависимость от Age, прологарифмируем его.</p>
-<pre class="r"><code>estimateModel(Y ~ log(Age) + Cem + Wat + Plast + Slag + Ash)</code></pre>
-<pre><code>## [1] 7005.439
+<pre class="r"><code># data.concrete$Age &lt;- log(data.concrete$Age)
+data.concrete$Age &lt;- factor(data.concrete$Age)
+contrasts(data.concrete$Age) &lt;- contr.helmert
+estimateModel(Y ~ Age + Cem + Wat + Plast + Slag + Ash)</code></pre>
+<pre><code>## [1] 6913.886
 ## 
 ## Call:
 ## lm(formula = formula, data = data.concrete)
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
-## -22.2042  -4.5391  -0.0669   4.2406  29.7157 
+## -20.1427  -4.4360  -0.3487   3.8212  30.4457 
 ## 
 ## Coefficients:
 ##              Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept) 12.150381   2.899595   4.190 3.03e-05 ***
-## log(Age)     8.653801   0.192754  44.896  &lt; 2e-16 ***
-## Cem          0.109647   0.002947  37.202  &lt; 2e-16 ***
-## Wat         -0.244859   0.014569 -16.807  &lt; 2e-16 ***
-## Plast        0.046304   0.058929   0.786    0.432    
-## Slag         0.085696   0.003443  24.890  &lt; 2e-16 ***
-## Ash          0.060620   0.005349  11.333  &lt; 2e-16 ***
+## (Intercept) 35.947570   3.035972  11.841  &lt; 2e-16 ***
+## Age1         7.492208   2.458516   3.047 0.002368 ** 
+## Age2         4.320035   0.843085   5.124 3.58e-07 ***
+## Age3         4.739133   0.473601  10.007  &lt; 2e-16 ***
+## Age4         3.588166   0.262489  13.670  &lt; 2e-16 ***
+## Age5         4.108778   0.209780  19.586  &lt; 2e-16 ***
+## Age6         2.634808   0.185734  14.186  &lt; 2e-16 ***
+## Age7         2.370988   0.216189  10.967  &lt; 2e-16 ***
+## Age8         2.356857   0.135200  17.432  &lt; 2e-16 ***
+## Age9         1.092328   0.402868   2.711 0.006814 ** 
+## Age10        0.964346   0.140741   6.852 1.26e-11 ***
+## Age11        1.207725   0.171814   7.029 3.82e-12 ***
+## Age12        0.828150   0.221512   3.739 0.000195 ***
+## Age13        0.829272   0.140759   5.891 5.21e-09 ***
+## Cem          0.111522   0.002868  38.887  &lt; 2e-16 ***
+## Wat         -0.203670   0.014706 -13.850  &lt; 2e-16 ***
+## Plast        0.012728   0.057785   0.220 0.825716    
+## Slag         0.085583   0.003351  25.540  &lt; 2e-16 ***
+## Ash          0.048552   0.005287   9.183  &lt; 2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 7.224 on 1023 degrees of freedom
-## Multiple R-squared:  0.8141, Adjusted R-squared:  0.813 
-## F-statistic: 746.7 on 6 and 1023 DF,  p-value: &lt; 2.2e-16
+## Residual standard error: 6.87 on 1011 degrees of freedom
+## Multiple R-squared:  0.8338, Adjusted R-squared:  0.8309 
+## F-statistic: 281.8 on 18 and 1011 DF,  p-value: &lt; 2.2e-16
 ## 
 ## 
-## Error estimation of 'lm' using 10-fold cross validation: 52.77087</code></pre>
+## Error estimation of 'lm' using 10-fold cross validation: 48.12386</code></pre>
 <p>Посмотрим, что у Ash, Plast и Slag на графиках видно большое кол-во образцов с конкретным значением параметра в 0 (у Wat тоже, но у него вокруг конкретных значений еще и другие данные)</p>
 <pre class="r"><code>data.concrete$PlastBord &lt;- data.concrete$Plast &gt; 0
 data.concrete$AshBord &lt;- data.concrete$Ash &gt; 0
 data.concrete$SlagBord &lt;- data.concrete$Slag &gt; 0
-estimateModel(Y ~ log(Age) + Cem + Wat + PlastBord + Slag + Ash)</code></pre>
-<pre><code>## [1] 6943.22
+estimateModel(Y ~ Age + Cem + Wat + PlastBord + Slag + Ash)</code></pre>
+<pre><code>## [1] 6877.565
 ## 
 ## Call:
 ## lm(formula = formula, data = data.concrete)
 ## 
 ## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -23.560  -4.586  -0.020   4.077  28.201 
+##      Min       1Q   Median       3Q      Max 
+## -22.1036  -4.5461  -0.2572   3.7131  29.5725 
 ## 
 ## Coefficients:
 ##                Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)    5.744523   2.637837   2.178   0.0297 *  
-## log(Age)       8.570016   0.186554  45.939  &lt; 2e-16 ***
-## Cem            0.103466   0.002782  37.187  &lt; 2e-16 ***
-## Wat           -0.204131   0.012529 -16.292  &lt; 2e-16 ***
-## PlastBordTRUE  5.902918   0.735819   8.022 2.83e-15 ***
-## Slag           0.075556   0.003343  22.599  &lt; 2e-16 ***
-## Ash            0.029611   0.006106   4.850 1.43e-06 ***
+## (Intercept)   31.744386   2.766551  11.474  &lt; 2e-16 ***
+## Age1           6.733463   2.417369   2.785  0.00545 ** 
+## Age2           4.328116   0.828288   5.225 2.11e-07 ***
+## Age3           4.465452   0.467338   9.555  &lt; 2e-16 ***
+## Age4           3.396578   0.258754  13.127  &lt; 2e-16 ***
+## Age5           3.954510   0.207232  19.083  &lt; 2e-16 ***
+## Age6           2.779033   0.183996  15.104  &lt; 2e-16 ***
+## Age7           2.198767   0.211468  10.398  &lt; 2e-16 ***
+## Age8           2.275386   0.133517  17.042  &lt; 2e-16 ***
+## Age9           1.185302   0.396059   2.993  0.00283 ** 
+## Age10          1.037125   0.138808   7.472 1.71e-13 ***
+## Age11          1.275728   0.169179   7.541 1.04e-13 ***
+## Age12          0.890354   0.217809   4.088 4.70e-05 ***
+## Age13          0.854322   0.138220   6.181 9.23e-10 ***
+## Cem            0.106389   0.002780  38.275  &lt; 2e-16 ***
+## Wat           -0.176127   0.012770 -13.793  &lt; 2e-16 ***
+## PlastBordTRUE  4.629212   0.767946   6.028 2.32e-09 ***
+## Slag           0.078058   0.003323  23.487  &lt; 2e-16 ***
+## Ash            0.026780   0.005930   4.516 7.04e-06 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 7.009 on 1023 degrees of freedom
-## Multiple R-squared:  0.825,  Adjusted R-squared:  0.824 
-## F-statistic: 803.8 on 6 and 1023 DF,  p-value: &lt; 2.2e-16
+## Residual standard error: 6.75 on 1011 degrees of freedom
+## Multiple R-squared:  0.8396, Adjusted R-squared:  0.8367 
+## F-statistic:   294 on 18 and 1011 DF,  p-value: &lt; 2.2e-16
 ## 
 ## 
-## Error estimation of 'lm' using 10-fold cross validation: 49.40481</code></pre>
-<pre class="r"><code>estimateModel(Y ~ log(Age) + Cem + Wat + PlastBord + Slag + Ash)</code></pre>
-<pre><code>## [1] 6943.22
+## Error estimation of 'lm' using 10-fold cross validation: 46.43711</code></pre>
+<pre class="r"><code>estimateModel(Y ~ Age + Cem + Wat + PlastBord + Slag + Ash)</code></pre>
+<pre><code>## [1] 6877.565
 ## 
 ## Call:
 ## lm(formula = formula, data = data.concrete)
 ## 
 ## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -23.560  -4.586  -0.020   4.077  28.201 
+##      Min       1Q   Median       3Q      Max 
+## -22.1036  -4.5461  -0.2572   3.7131  29.5725 
 ## 
 ## Coefficients:
 ##                Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)    5.744523   2.637837   2.178   0.0297 *  
-## log(Age)       8.570016   0.186554  45.939  &lt; 2e-16 ***
-## Cem            0.103466   0.002782  37.187  &lt; 2e-16 ***
-## Wat           -0.204131   0.012529 -16.292  &lt; 2e-16 ***
-## PlastBordTRUE  5.902918   0.735819   8.022 2.83e-15 ***
-## Slag           0.075556   0.003343  22.599  &lt; 2e-16 ***
-## Ash            0.029611   0.006106   4.850 1.43e-06 ***
+## (Intercept)   31.744386   2.766551  11.474  &lt; 2e-16 ***
+## Age1           6.733463   2.417369   2.785  0.00545 ** 
+## Age2           4.328116   0.828288   5.225 2.11e-07 ***
+## Age3           4.465452   0.467338   9.555  &lt; 2e-16 ***
+## Age4           3.396578   0.258754  13.127  &lt; 2e-16 ***
+## Age5           3.954510   0.207232  19.083  &lt; 2e-16 ***
+## Age6           2.779033   0.183996  15.104  &lt; 2e-16 ***
+## Age7           2.198767   0.211468  10.398  &lt; 2e-16 ***
+## Age8           2.275386   0.133517  17.042  &lt; 2e-16 ***
+## Age9           1.185302   0.396059   2.993  0.00283 ** 
+## Age10          1.037125   0.138808   7.472 1.71e-13 ***
+## Age11          1.275728   0.169179   7.541 1.04e-13 ***
+## Age12          0.890354   0.217809   4.088 4.70e-05 ***
+## Age13          0.854322   0.138220   6.181 9.23e-10 ***
+## Cem            0.106389   0.002780  38.275  &lt; 2e-16 ***
+## Wat           -0.176127   0.012770 -13.793  &lt; 2e-16 ***
+## PlastBordTRUE  4.629212   0.767946   6.028 2.32e-09 ***
+## Slag           0.078058   0.003323  23.487  &lt; 2e-16 ***
+## Ash            0.026780   0.005930   4.516 7.04e-06 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 7.009 on 1023 degrees of freedom
-## Multiple R-squared:  0.825,  Adjusted R-squared:  0.824 
-## F-statistic: 803.8 on 6 and 1023 DF,  p-value: &lt; 2.2e-16
+## Residual standard error: 6.75 on 1011 degrees of freedom
+## Multiple R-squared:  0.8396, Adjusted R-squared:  0.8367 
+## F-statistic:   294 on 18 and 1011 DF,  p-value: &lt; 2.2e-16
 ## 
 ## 
-## Error estimation of 'lm' using 10-fold cross validation: 49.50122</code></pre>
-<pre class="r"><code>estimateModel(Y ~ log(Age) + Cem + Wat + AshBord + PlastBord + Slag)</code></pre>
-<pre><code>## [1] 6927.354
+## Error estimation of 'lm' using 10-fold cross validation: 47.06127</code></pre>
+<pre class="r"><code>estimateModel(Y ~ Age + Cem + Wat + AshBord + PlastBord + Slag)</code></pre>
+<pre><code>## [1] 6868.283
 ## 
 ## Call:
 ## lm(formula = formula, data = data.concrete)
 ## 
 ## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -22.998  -4.734   0.028   4.034  28.823 
+##      Min       1Q   Median       3Q      Max 
+## -21.6614  -4.6778  -0.1611   3.6517  29.9788 
 ## 
 ## Coefficients:
 ##                Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)    6.398531   2.596286   2.464   0.0139 *  
-## log(Age)       8.597550   0.185237  46.414  &lt; 2e-16 ***
-## Cem            0.104843   0.002667  39.316  &lt; 2e-16 ***
-## Wat           -0.211395   0.012557 -16.835  &lt; 2e-16 ***
-## AshBordTRUE    5.131056   0.813687   6.306 4.25e-10 ***
-## PlastBordTRUE  4.685602   0.787925   5.947 3.75e-09 ***
-## Slag           0.078980   0.003371  23.426  &lt; 2e-16 ***
+## (Intercept)   32.796088   2.733243  11.999  &lt; 2e-16 ***
+## Age1           6.632846   2.406255   2.757  0.00595 ** 
+## Age2           4.334225   0.824539   5.257 1.79e-07 ***
+## Age3           4.398041   0.465367   9.451  &lt; 2e-16 ***
+## Age4           3.416521   0.257671  13.259  &lt; 2e-16 ***
+## Age5           3.933466   0.206347  19.062  &lt; 2e-16 ***
+## Age6           2.794337   0.183233  15.250  &lt; 2e-16 ***
+## Age7           2.264396   0.211524  10.705  &lt; 2e-16 ***
+## Age8           2.235608   0.133282  16.773  &lt; 2e-16 ***
+## Age9           1.201103   0.394312   3.046  0.00238 ** 
+## Age10          1.050611   0.138221   7.601 6.69e-14 ***
+## Age11          1.288308   0.168297   7.655 4.50e-14 ***
+## Age12          0.892720   0.216811   4.117 4.14e-05 ***
+## Age13          0.866316   0.137628   6.295 4.58e-10 ***
+## Cem            0.106770   0.002658  40.165  &lt; 2e-16 ***
+## Wat           -0.182789   0.012856 -14.218  &lt; 2e-16 ***
+## AshBordTRUE    4.375602   0.802485   5.453 6.24e-08 ***
+## PlastBordTRUE  3.754020   0.817053   4.595 4.88e-06 ***
+## Slag           0.079954   0.003326  24.042  &lt; 2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 6.955 on 1023 degrees of freedom
-## Multiple R-squared:  0.8277, Adjusted R-squared:  0.8267 
-## F-statistic: 818.9 on 6 and 1023 DF,  p-value: &lt; 2.2e-16
+## Residual standard error: 6.72 on 1011 degrees of freedom
+## Multiple R-squared:  0.841,  Adjusted R-squared:  0.8382 
+## F-statistic: 297.1 on 18 and 1011 DF,  p-value: &lt; 2.2e-16
 ## 
 ## 
-## Error estimation of 'lm' using 10-fold cross validation: 48.77925</code></pre>
+## Error estimation of 'lm' using 10-fold cross validation: 46.3488</code></pre>
 <p>Из финальной модели видим, что в прочности бетона играют роль наличие Fly Ash и Superplasticizer, а также присутствует нелинейная зависимость от Age.</p>
 
 
