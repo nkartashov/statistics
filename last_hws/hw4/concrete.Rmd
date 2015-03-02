@@ -29,8 +29,8 @@ plotVariables <- function() {
     print(plotVariable(i)) 
     }
 }
-
 ```
+
 ```{r}
 estimateModel <- function(formula) {
   model <- lm(formula, data.concrete)

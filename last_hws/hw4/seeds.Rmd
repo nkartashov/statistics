@@ -1,0 +1,114 @@
+---
+title: "seeds"
+author: "Nikita Kartashov"
+date: "21 January 2015"
+output: html_document
+---
+
+Прочтем данные, коротко назовем колонки.
+
+```{r}
+library(knitr)
+library(lattice)
+library(MASS)
+library(e1071)
+library(corrplot)
+library(latticeExtra)
+library(nnet)
+
+data <- read.table("data/seeds_dataset.txt")
+names(data) <- c("Area", "Perim", "Compact", "KernLen", "KernWid", "Asym", "GrvLen", "Var")
+```
+
+Построем графики, чтобы понять что-нибудь про данные.
+
+```{r}
+corrplot(cor(data))
+data$Var <- factor(data$Var)
+marginal.plot(data[,-8], data = data, groups = Var)
+```
+
+Сразу видно, что корреляций много, готовимся к многим итерациям. Видно также, что не все предикторы хорого разделяют классы, скорее стоит возлагать надежды на Area, Perim и KernWid.
+
+```{r}
+train.index <- sample(nrow(data), size = nrow(data) * 0.666)
+data.train <- data[train.index, ]
+data.test <- data[-train.index, ]
+```
+
+```{r}
+check.model.without.class <- function(model) {
+  predicted <- predict(model, data.test)
+  print(table(predicted = predicted, actual = data.test$Var))
+  print(mean(predicted != data.test$Var))
+  return(model)
+}
+```
+
+```{r}
+check.model.with.class <- function(model) {
+  predicted <- predict(model, data.test)
+  print(table(predicted = predicted$class, actual = data.test$Var))
+  print(mean(predicted$class != data.test$Var))
+  return(model)
+}
+```
+
+```{r}
+go.lda <- function(formula, checker = check.model.with.class) {
+  model <- lda(formula , data = data.train)
+  print(model)
+  print(tune(lda, formula, data = data, predict.func = function(...) predict(...)$class, tunecontrol = tune.control(cross = nrow(data))))
+  
+  return(checker(model))
+}
+model.lda <- go.lda(Var ~ .)
+```
+
+```{r}
+go.bayes <- function(formula, checker = check.model.without.class) {
+  model <- naiveBayes(formula , data = data.train)
+  print(model)
+
+  print(tune(naiveBayes, formula, data = data, tunecontrol = tune.control(cross = nrow(data))))
+  
+  return(checker(model))
+}
+model.bayes <- go.bayes(Var ~ .)
+```
+
+```{r}
+go.multinomial <- function(formula, checker = check.model.without.class) {
+  model <- multinom(formula, maxit = 5000, data = data.train)
+  print(model)
+
+  print(tune(multinom, formula, data = data, tunecontrol = tune.control(cross = nrow(data))))
+  
+  return(checker(model))
+}
+model.multinom <- go.multinomial(Var ~ .)
+```
+
+Значения уже ничего, попробуем упростить модель stepAIC.
+
+```{r}
+
+model.refined <- stepAIC(model.multinom, maxit = 5000, trace = FALSE)
+formula.refined <- as.formula(model.refined)
+
+go.multinomial(formula.refined)
+go.bayes(formula.refined)
+go.lda(formula.refined)
+```
+
+AIC оставил ожидаемые Area, Perim и неожиданные KernLen и Asym. Попробуем нашу модель построенную на ожиданиях.
+
+```{r}
+go.multinomial(Var ~ Area + Perim + KernWid)
+go.bayes(Var ~ Area + Perim + KernWid)
+go.lda(Var ~ Area + Perim + KernWid)
+```
+
+Ожидания подвели, получилось даже хуже (причем значительно), чем модель просто из всех предикторов.
+
+После выбора по AIC мультиномиальная регрессия становится лучше (в районе 1.4 против 2 процента misclassifies у LDA), хотя при разных запусках бывает, что происходит обратное и LDA уже имеет в районе 1.4 - 1.8, когда мультиномиальная регрессия дает 2 - 2.8, в общем, мультиномиальная регрессия как-то надежнее дает результат по-моему.

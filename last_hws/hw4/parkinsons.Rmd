@@ -1,0 +1,140 @@
+---
+title: "parkinsons"
+author: "Nikita Kartashov"
+date: "19 January 2015"
+output: html_document
+---
+
+Загрзим данные, выкинем имена.
+
+```{r}
+library(lattice)
+library(MASS)
+library(e1071)
+library(corrplot)
+library(latticeExtra)
+library(nnet)
+
+data <- read.csv("data/parkinsons.csv", comment.char = "#")
+data$name <- NULL
+```
+
+Выбросим MDVP:Jitter(Abs), потому как это абсолютное значение величины MDVP:Jitter(%), которая у нас есть в процентах.
+```{r}
+data$MDVP.Jitter.Abs. <- NULL
+```
+
+Посмотрим на графики наших данных (и сразу будем рассматривать status как фактор).
+
+```{r}
+corrplot(cor(data))
+data$status <- as.factor(data$status)
+marginal.plot(data, data = data, groups = status)
+```
+
+Поделим данные на тестовый и тренировочный наборы и начнем строить модели.
+
+```{r}
+train.index <- sample(nrow(data), size = nrow(data) * 0.666)
+data.train <- data[train.index, ]
+data.test <- data[-train.index, ]
+```
+
+Начнем с LDA
+
+```{r}
+check.model.without.class <- function(model) {
+  predicted <- predict(model, data.test)
+  print(table(predicted = predicted, actual = data.test$status))
+  print(mean(predicted != data.test$status))
+  return(model)
+}
+```
+
+```{r}
+check.model.with.class <- function(model) {
+  predicted <- predict(model, data.test)
+  print(table(predicted = predicted$class, actual = data.test$status))
+  print(mean(predicted$class != data.test$status))
+  return(model)
+}
+```
+
+```{r}
+go.lda <- function(formula, checker = check.model.with.class) {
+  model <- lda(formula , data = data.train)
+  print(model)
+  print(tune(lda, formula, data = data, predict.func = function(...) predict(...)$class, tunecontrol = tune.control(cross = nrow(data))))
+  
+  return(checker(model))
+}
+model.lda <- go.lda(status ~ .)
+```
+
+```{r}
+go.bayes <- function(formula, checker = check.model.without.class) {
+  model <- naiveBayes(formula , data = data.train)
+  print(model)
+
+  print(tune(naiveBayes, formula, data = data, tunecontrol = tune.control(cross = nrow(data))))
+  
+  return(checker(model))
+}
+model.bayes <- go.bayes(status ~ .)
+```
+
+```{r}
+go.multinomial <- function(formula, checker = check.model.without.class) {
+  model <- multinom(formula, maxit = 5000, data = data.train)
+  print(model)
+
+  print(tune(multinom, formula, data = data, tunecontrol = tune.control(cross = nrow(data))))
+  
+  return(checker(model))
+}
+model.multinom <- go.multinomial(status ~ .)
+```
+
+Мультиномиальноая регрессия и LDA показывают себя почти одинаково, Байесо проседает
+
+```{r}
+model.refined <- stepAIC(model.multinom)
+formula.refined <- as.formula(model.refined)
+go.multinomial(formula.refined)
+go.bayes(formula.refined)
+go.lda(formula.refined)
+```
+
+Удаление лишних признаков идет на пользу и LDA и мультиномиальной регрессии, последней - больше. Попробуем сгруппировать и посмотрим, как будет работать.
+
+```{r}
+data <- read.csv("data/parkinsons.csv", comment.char = "#")
+data$name <- substr(data$name, 1, 13)
+data <- aggregate(data, by = list(data$name), FUN = mean)
+data$Group.1 <- NULL
+data$name <- NULL
+data$MDVP.Jitter.Abs. <- NULL
+```
+
+```{r}
+data$status <- factor(data$status)
+train.index <- sample(nrow(data), size = nrow(data) * 0.666)
+data.train <- data[train.index, ]
+data.test <- data[-train.index, ]
+```
+
+```{r}
+model.lda <- go.lda(status ~ .)
+model.bayes <- go.bayes(status ~ .)
+model.multinom <- go.multinomial(status ~ .)
+```
+
+```{r}
+model.refined <- stepAIC(model.multinom, maxit = 5000, trace = FALSE)
+formula.refined <- as.formula(model.refined)
+go.multinomial(formula.refined)
+go.bayes(formula.refined)
+go.lda(formula.refined)
+```
+
+Опять LDA и мультиномиальноая регрессия показывают себя лучше, но при этом LDA по непонятным причинам ломается и считает, что наличествуют коллинеарные переменные, по модулю этого, группировка пошла на пользу (исключая факт, что образцов стало меньше).

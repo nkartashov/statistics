@@ -1,0 +1,75 @@
+---
+title: "hw5"
+author: "Nikita Kartashov"
+date: "21 January 2015"
+output: html_document
+---
+
+Создадим данные и сделаем один из сгенерированных столбцов ответом
+
+```{r}
+library(e1071)
+generate <- function(size = 100) {
+  data <- data.frame(matrix(rnorm(size * 1001), nrow = size))
+  names(data)[1] <- "Y"
+  return(data)
+  }
+```
+
+Возьмем корреляцию по модулю и отсортируем по ней.
+
+```{r}
+data <- generate()
+```
+
+```{r}
+correlated.first <- function(data = data) {
+  data.correlation <- abs(cor(data))
+  data.correlated.first <- data[, order(data.correlation[1, ], decreasing = TRUE)]
+  return(data.correlated.first)
+}
+data.correlated.first <- correlated.first(data)
+```
+
+Выберем топ 20 по корреляции.
+
+```{r}
+data.top20.correlated <- data.correlated.first[, 1:21]
+```
+
+Cделаем модель
+
+```{r}
+check <- function(formula, data) {
+  print(tune(lm, formula, data = data, tunecontrol = tune.control(cross = nrow(data))))
+}
+check(Y ~ ., data.top20.correlated)
+```
+
+Проверим с test/train
+
+```{r}
+train <- data[1:nrow(data) / 2,]
+test  <- data[(nrow(data) / 2 + 1):100,]
+data.correlated.first <- correlated.first(train)
+predictors <- names(data.correlated.first)[2:21]
+formula <- as.formula(paste("Y ~ ", paste(predictors, collapse="+")))
+model <- lm(formula, data = test)
+predicted <- predict(model, test)
+print(paste("Error: ", sum(abs(test$Y - predicted))))
+```
+
+Пришли к тому, что случайные данные не очень предсказывают другие случайные данные.
+Сделаем кросс-валидацию всей процедуры.
+
+```{r}
+lm.real.train <- function(formula, data, subset) {
+  real.train <- data[subset, ]
+  real.top20.correlated <- correlated.first(real.train)[, 1:21]
+  return(lm(formula, data = real.top20.correlated))
+}
+
+tune(lm.real.train, Y ~ ., data = data, tunecontrol = tune.control(cross = nrow(data)))
+```
+
+Ошибка ощутимо выросла.

@@ -1,0 +1,45 @@
+---
+title: "bandplot"
+author: "Nikita Kartashov"
+date: "21 January 2015"
+output: html_document
+---
+```{r}
+library(lattice)
+```
+
+```{r}
+my.panel.bands <- function(x, y, upper, lower, fill, col,
+                           subscripts, ..., font, fontface) {
+  upper <- upper[subscripts]
+  lower <- lower[subscripts]
+  panel.polygon(c(x, rev(x)), c(upper, rev(lower)),
+                col = fill, border = FALSE, ...)}
+```
+
+```{r}
+conf.bandplot <- function(formula, data, ...) {
+  xyplot(formula, data = data,
+         upper = data$high, lower = data$low,
+         prepanel = function(x, y, upper, lower, subscripts, ...) {
+           default.prepanel <- prepanel.default.xyplot(x, y, subscripts, ...)
+           default.prepanel$ylim <- c(min(lower), max(upper))
+           default.prepanel
+           },
+         panel = function(x, y, ...) {
+           panel.superpose(x, y, panel.groups = my.panel.bands, type='l', col='gray',...)
+           panel.xyplot(x, y, type='b', cex=0.6, lty=1,...)
+           }, ...)}
+```
+
+```{r}
+limit <- 100
+border <- 3
+data <- data.frame(x = 1:limit, y = rnorm(limit))
+data$low <- data$y - border
+data$high <- data$y + border
+conf.bandplot(y ~ x, data, groups=(data$x < limit / 2))
+```
+
+
+
