@@ -1,0 +1,120 @@
+---
+title: "hw1"
+author: "Nikita Kartashov"
+date: "2 March 2015"
+output: html_document
+---
+
+Задание 1
+
+```{r}
+default.size <- 100
+real.n <- 100
+real.p <- 0.2
+xs <- rbinom(n=default.size, size=real.n, prob=real.p)
+prob.mle <- function(prob, x) {
+  sum(-dbinom(x, size=real.n, prob=prob, log=TRUE))
+  }
+start.prob <- mean(xs) * 1.0 / real.n
+mle.prob.estimate <- nlm(prob.mle, start.prob, xs)
+```
+
+Задание 2
+
+```{r}
+default.size <- 100
+real.probabilities <- prop.table(c(1, 1, 1, 2, 3, 1, 1, 0.5, 0.01))
+generate <- function(probs, size=default.size) {
+  sample(x=seq(length(probs)), size=size, replace=TRUE, prob=probs)
+  }
+pad <- function(l, desired.length) {
+  zeroes.length <- desired.length - length(l)
+  if (zeroes.length <= 0) {
+    l
+    } else {
+      c(l, rep(0, zeroes.length))
+      }
+  }
+xs <- generate(real.probabilities)
+fake.probabilities <- prop.table(c(1, 1, 1, 2, 3, 1, 1.005, 0.505))
+fake.probabilities
+t <- table(xs)
+padded.observed.probs <- prop.table(pad(t, length(fake.probabilities)))
+padded.observed.probs
+fake.probabilities <- pad(fake.probabilities, length(padded.observed.probs))
+chisq.test(padded.observed.probs, p=fake.probabilities)
+```
+
+Что происходит выше: берем настоящее распределение с редким последним исходом, "размазываем" его вероятность по другим, моделируем выборку не слишком большого размера, получаем, что нулевая гипотеза не отвергается.
+
+```{r}
+default.size <- 1000
+real.probabilities <- prop.table(c(1, 1, 100, 100, 100, 100, 2, 2))
+xs <- generate(real.probabilities, default.size <- 100)
+fake.probabilities <- prop.table(c(1.5, 1.5, 100, 100, 100, 100, 1.5, 1.5))
+real.probabilities
+fake.probabilities
+t <- prop.table(table(xs))
+t
+observed.probs <- rep(0, length(real.probabilities))
+observed.probs[as.numeric(row.names(t))] <- t
+chisq.test(observed.probs, p=fake.probabilities)
+```
+
+Возьмем два распределения похожей формы, но с разными краями, даже при большой выборке из-за относительной редкости исходов на краях, тест не может точно отвергнуть гипотезу.
+
+Задание 3
+
+```{r}
+right.border <- 200
+sizes <- seq(5, right.border, 1)
+min.pvalue <- 0.05
+simulate <- function(size, mean.diff=0, sd.diff=0, parametric=TRUE) {
+  x <- rnorm(n=size)
+  y <- rnorm(n=size, mean=mean.diff, sd= 1 + sd.diff)
+  if (parametric) {
+    t.test(x, y)$p.value < min.pvalue
+  } else {
+    wilcox.test(x, y)$p.value < min.pvalue
+  }
+}
+mean.diff = 10
+sd.diff = 30
+test.parametric <- Map(function(x) simulate(x, mean.diff = mean.diff, sd.diff = sd.diff), sizes)
+test.nonparametric <- Map(function(x) simulate(x, mean.diff = mean.diff, sd.diff = sd.diff, parametric=FALSE), sizes)
+xlabel <- "sample size"
+ylimit <- c(0, 1)
+plot(sizes, test.parametric, xlab=xlabel, ylab=NULL, ylim=ylimit, col="red", cex=.3)
+par(new = TRUE)
+plot(sizes, test.nonparametric, xlab=xlabel, ylab=NULL, ylim=ylimit, col="blue", cex=.3)
+par(new = FALSE)
+```
+
+Берем разные размеры выборки, проверяем двумя тестами (t-тест и тест Манна-Уитни), второй почти также хорошо работает (в смысле, отвергает гипотезу примерно на тех же размерах выборки, что и t-test).
+Попробуем на смеси нормальных распределений.
+
+```{r}
+library(plyr)
+simulate <- function(size, mean.diff, sd.diff, parametric=TRUE) {
+  x <- rowSums(sapply(mean.diff, function(x) rnorm(n=size)))
+  diffs <- data.frame(m=mean.diff, s=sd.diff)
+  y <- rowSums(mapply(function(m, s) rnorm(n=size, mean=m, sd=1+s), mean.diff, sd.diff))
+  if (parametric) {
+    t.test(x, y)$p.value < min.pvalue
+  } else {
+    wilcox.test(x, y)$p.value < min.pvalue
+  }
+}
+mean.diff <- c(1, -1, 2, 3, -2, -4, -3)
+sd.diff <- c(2, 3, 0.5, 6, 9, 4, 1)
+test.parametric <- Map(function(x) simulate(x, mean.diff = mean.diff, sd.diff = sd.diff), sizes)
+test.nonparametric <- Map(function(x) simulate(x, mean.diff = mean.diff, sd.diff = sd.diff, parametric=FALSE), sizes)
+xlabel <- "sample size"
+ylimit <- c(0, 1)
+plot(sizes, test.parametric, xlab=xlabel, ylab=NULL, ylim=ylimit, col="red", cex=.3)
+par(new = TRUE)
+plot(sizes, test.nonparametric, xlab=xlabel, ylab=NULL, ylim=ylimit, col="blue", cex=.3)
+par(new = FALSE)
+```
+
+Оба теста здесь показывают примерно одинаковый результат (наверное, я что-то не так делаю)
