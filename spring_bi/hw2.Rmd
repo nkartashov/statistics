@@ -1,0 +1,92 @@
+---
+title: "hw2"
+author: "Nikita Kartashov"
+date: "20 March 2015"
+output: html_document
+---
+
+Задание 1
+
+```{r}
+sample_size <- 100
+generate_error <- function(n) rnorm(n)
+generate_xs <- function(n, a = 1, x0 = 10) {
+  xs <- c(1:n)
+  xs[0] <- x0
+  for (i in c(2:n)) {
+    xs[i] = xs[i - 1] * a
+  }
+  xs <- xs + generate_error(n)
+  xs
+}
+
+r1 <- function(xs) {
+  l <- length(xs)
+  x_minus <- 1.0 / (l - 1) * sum(xs[1:l - 1])
+  x_plus <- 1.0 / (l - 1) * sum(xs[2:l])
+  result <- sum((xs[2:l] - x_plus) * (xs[1:l - 1] - x_minus)) / 
+    sqrt(sum((xs[2:l] - x_plus) ^ 2) * sum((xs[1:l - 1] - x_minus) ^ 2))
+  result
+}
+```
+
+Проверим значимость критерия при разных a
+
+```{r}
+alpha <- 0.025
+q <- qnorm(c(alpha, 1 - alpha), mean = 0, sd = 1 / sample_size)
+for (a in (seq(1, 100) / 10)) {
+  print(a)
+  xs <- generate_xs(sample_size, a = a)
+  r <- r1(xs)
+  if (r > q[1] && r < q[2]) {
+    print("Don't reject H_0")
+  } else {
+    print("H_0 is rejected")
+  }
+}
+```
+
+Как видно на значениях a в районе 6.1 и ошибках из стандартного нормального распределения гипотеза больше не отвергается.
+
+Проверим мощность критерия на разных распределениях
+
+```{r}
+generate_evil_xs <- function(sample_size, f) f(sample_size)
+rtdf <- function(df) {function(n) {rt(n, df)}}
+fs <- c(rnorm, lapply(c(3, 2, 1), rtdf))
+for (f in fs) {
+  xs <- generate_evil_xs(sample_size, f)
+  r <- r1(xs)
+  if (r > q[1] && r < q[2]) {
+    print("Don't reject H_0")
+  } else {
+    print("H_0 is rejected")
+  }
+}
+```
+
+Мы отвергаем нулевую гипотезу для всех распределений кроме t_2.
+
+Задание 2
+
+```{r}
+for (a in (seq(1, 100) / 10)) {
+  print(a)
+  xs <- generate_xs(sample_size, a = a)
+  r_star <- r1(xs)
+  rs <- 0
+  permutations <- sample_size / 10 
+  for (i in c(1:permutations)) {
+    if (r1(sample(xs)) > r_star) {
+      rs <- rs + 1
+    }
+    rs <- rs / permutations
+    print(rs)
+  }
+}
+```
+
+Задание 3
+
+Задание 4
