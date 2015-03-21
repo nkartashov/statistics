@@ -40,9 +40,9 @@ for (a in (seq(1, 100) / 10)) {
   xs <- generate_xs(sample_size, a = a)
   r <- r1(xs)
   if (r > q[1] && r < q[2]) {
-    print("Don't reject H_0")
+    print("REJECTED")
   } else {
-    print("H_0 is rejected")
+    print("NOT REJECTED")
   }
 }
 ```
@@ -59,9 +59,9 @@ for (f in fs) {
   xs <- generate_evil_xs(sample_size, f)
   r <- r1(xs)
   if (r > q[1] && r < q[2]) {
-    print("Don't reject H_0")
+    print("REJECTED")
   } else {
-    print("H_0 is rejected")
+    print("NOT REJECTED")
   }
 }
 ```
@@ -69,6 +69,19 @@ for (f in fs) {
 Мы отвергаем нулевую гипотезу для всех распределений кроме t_2.
 
 Задание 2
+
+```{r}
+border_p_value <- 0.05
+rejector <- function(p) {
+  if (p < border_p_value) {
+    "REJECTED"
+  } else {
+    "NOT REJECTED"
+  }
+}
+```
+
+Проверим значимость уже перестановочного критерия на основе автокорелляции при разных a
 
 ```{r}
 permutations <- sample_size / 5
@@ -81,25 +94,37 @@ for (a in (seq(1, 100) / 10)) {
     if (r1(sample(xs)) > r_star) {
       rs <- rs + 1
     }
-    rs <- rs / permutations
-    print(rs)
   }
+  rs <- rs / permutations
+  print(rejector(rs))
 }
 ```
+
+Значимость возросла значительно, отвергаем нулевую гипотезу на в шесть раз меньших значениях параметра a.
+
+Посмотрим теперь на мощность перестановочного критерия против разных распределений.
+
+```{r}
+for (f in fs) {
+  xs <- generate_evil_xs(sample_size, f)
+  r_star <- r1(xs)
+  rs <- 0
+  for (i in c(1:permutations)) {
+    if (r1(sample(xs)) > r_star) {
+      rs <- rs + 1
+    }
+  }
+  rs <- rs / permutations
+  print(rejector(rs))
+}
+```
+Теперь мы не отвергаем ни одного распределения, что радует.
 
 Задание 3
 
 Исследуем мощность перестановочного t-критерия и сравним с мощностью параметрического t-критерия.
 
 ```{r}
-border_p_value <- 0.05
-rejector <- function(p) {
-  if (p < border_p_value) {
-    "REJECTED"
-  } else {
-    "NOT REJECTED"
-  }
-}
 library(RVAideMemoire)
 sd = 2.3
 for (diff in seq(1, 100) / 100) {
