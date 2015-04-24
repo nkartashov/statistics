@@ -1,0 +1,69 @@
+---
+title: "hw3_2"
+author: "Nikita Kartashov"
+date: "24 April 2015"
+output: html_document
+---
+
+```{r}
+library(knitr)
+library(lattice)
+library(MASS)
+library(e1071)
+library(corrplot)
+library(latticeExtra)
+```
+
+```{r}
+df <- read.table("../data/2.txt")
+names(df)[names(df)=="FuelC"] <- "Y"
+```
+
+```{r}
+plotVariable <- function(param) {
+  formula <- reformulate(termlabels = param, response = 'Y')
+  xyplot(formula, panel=function(...) {  
+  panel.xyplot(...)
+  panel.loess(...)
+  }, data = df, xlab = param, ylab = "Y")
+}
+
+plotVariables <- function(y.column.index=1) {
+  for (i in colnames(df)[-y.column.index]) {
+    print(plotVariable(i)) 
+  }
+}
+```
+
+```{r}
+estimateModel <- function(formula) {
+  model <- lm(formula, df)
+  print(AIC(model))
+  print(summary(model))
+  print(tune(lm, as.formula(model), data = df, tunecontrol = tune.control(cross = nrow(df))))
+}
+```
+
+
+Let's look at the data.
+
+```{r}
+plotVariables(2)
+```
+
+We can notice that Y has a very distinct linear dependecy on Drivers & Pop. Let's corrlplot to check if two are related.
+
+```{r}
+corrplot.mixed(cor(df), tl.cex=1)
+```
+
+As expected, Drivers and Pop are very highly (0.99) correlated, therefore no need to include them both.
+So, let's start looking at models.
+
+```{r}
+estimateModel(Y ~ Drivers + Income + Miles + MPC + Tax)
+estimateModel(Y ~ Drivers + log(Income) + Miles + MPC + Tax)
+estimateModel(Y ~ log(Income)*MPC + Drivers*Miles + Tax)
+```
+
+So we made some kind of model which works albeit poorly.
