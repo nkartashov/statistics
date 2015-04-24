@@ -1,0 +1,7 @@
+---
+title: "hw3"
+author: "Nikita Kartashov"
+date: "20 April 2015"
+output: html_document
+---
+
