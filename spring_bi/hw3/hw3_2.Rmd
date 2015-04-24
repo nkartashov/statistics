@@ -41,6 +41,7 @@ estimateModel <- function(formula) {
   print(AIC(model))
   print(summary(model))
   print(tune(lm, as.formula(model), data = df, tunecontrol = tune.control(cross = nrow(df))))
+  return(model)
 }
 ```
 
@@ -62,23 +63,24 @@ So, let's start looking at models.
 ```{r}
 estimateModel(Y ~ Drivers + Income + Miles + MPC + Tax)
 estimateModel(Y ~ Drivers + log(Income) + Miles + MPC + Tax)
-estimateModel(Y ~ log(Income)*MPC + Drivers*Miles + Tax)
+m1 <- estimateModel(Y ~ log(Income)*MPC + Drivers*Miles + Tax)
 ```
 
 So we made some kind of model which works albeit poorly.
 
 ```{r}
-plot(lm(Y ~ log(Income)*MPC + Drivers*Miles + Tax, data=df))
+plot(m1)
 ```
 
 After looking at the plots and removing some of the data, I decided to remove several states data from which looked alien to me.
 
 ```{r}
-df <- df[!(rownames(df) %in% c("TX", "CA", "NY", "FL")),]
+df <- df[!(rownames(df) %in% c("TX", "CA", "NY", "FL", "DC")),]
 ```
 
 ```{r}
-estimateModel(Y ~ log(Income)*MPC + Drivers*Miles + Tax)
+m2 <- estimateModel(Y ~ log(Income)*MPC + Drivers*Miles + Tax)
+plot(m2)
 ```
 
-Looks like the model now explains the data better, can't say why Texas, California, New York and Florida have such an impact on the model's performance.
+Looks like the model now explains the data better, can't say why Texas, California, New York, DC and Florida have such an impact on the model's performance.

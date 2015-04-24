@@ -1,0 +1,75 @@
+---
+title: "hw3_3"
+author: "Nikita Kartashov"
+date: "24 Aprim1 2015"
+output: html_document
+---
+
+```{r}
+library(knitr)
+library(lattice)
+library(MASS)
+library(e1071)
+library(corrplot)
+library(latticeExtra)
+```
+
+```{r}
+df <- read.table("../data/3.txt")
+df$sex <- factor(df$sex, labels = c("m", "f"))
+contrasts(df$sex) <- contr.sum
+names(df)[names(df)=="gamble"] <- "Y"
+```
+
+```{r}
+estimateModel <- function(formula) {
+  model <- lm(formula, df)
+  print(AIC(model))
+  print(summary(model))
+  #print(tune(lm, as.formula(model), data = df, tunecontrol = tune.control(cross = nrow(df))))
+  return(model)
+}
+```
+
+```{r}
+plotVariable <- function(param) {
+  formula <- reformulate(termlabels = param, response = 'Y')
+  xyplot(formula, panel=function(...) {  
+  panel.xyplot(...)
+  panel.loess(...)
+  }, data = df, xlab = param, ylab = "Y")
+}
+
+plotVariables <- function(exclude=1) {
+  for (i in colnames(df)[-c(exclude)]) {
+    print(plotVariable(i)) 
+  }
+}
+```
+
+```{r}
+plotVariables(c(5))
+```
+
+```{r}
+m1 <- estimateModel(Y ~ .)
+```
+
+Let's try and remove insignificant predictors, looking at AIC
+
+```{r}
+m2 <- estimateModel(formula(update(m1, . ~ . - status)))
+m3 <- estimateModel(formula(update(m1, . ~ . - status - verbal)))
+```
+
+Separate data by gender.
+
+```{r}
+dff <- df[df$sex == "f",][, !(colnames(df) %in% c("sex"))]
+dfm <- df[df$sex == "m",][, !(colnames(df) %in% c("sex"))]
+```
+
+```{r}
+
+```
+
