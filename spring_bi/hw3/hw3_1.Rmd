@@ -21,8 +21,8 @@ reduced.model <- stepAIC(model)
 summary(reduced.model)
 ```
 
-Determination coefficient for the reduced model is 0.7383.
-But let's plot all the data and try to stare at it really hard.
+Determination coefficient for the reduced model is 0.7467.
+But let's plot all the data and try to stare at it really hard (also, diagnostics).
 
 ```{r}
 library(knitr)
@@ -52,17 +52,21 @@ plotVariables <- function() {
 plotVariables()
 ```
 
-We cannot help but notice an outlier to the right on plots ankle (although ankle has many outliers), abdomen, weight, BMI, neck, chest, hip, thigh, knee, whose measurements are high while body fat is relatively low, number 39. Let's remove him and fit again.
+```{r}
+plot(reduced.model)
+```
+
+We cannot help but notice an outlier to the right on plots ankle (although ankle has many outliers), abdomen, weight, BMI, neck, chest, hip, thigh, knee, whose measurements are high while body fat is relatively low, number 39, it's also has a very hight leverage, let's remove him and fit again.
 
 ```{r}
 df <- df[-c(39), ]
 ```
 
 ```{r}
-model <- lm(Y ~ ., data=df)
+model <- lm(Y ~ . , data=df)
 summary(model)
-reduced.model <- stepAIC(model)
+reduced.model <- stepAIC(model, direction = "backward")
 summary(reduced.model)
 ```
 
-We cannot look at R squared now (because we removed data therefore reducing its deviance), but RSE reduced a little (0.02) since the last model. On the sidenote, without using any means of checking the validity of our results, I'm not sure that they are significant.
+Looks like RSE improved.

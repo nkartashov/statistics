@@ -44,7 +44,6 @@ estimateModel <- function(formula) {
 }
 ```
 
-
 Let's look at the data.
 
 ```{r}
@@ -67,3 +66,19 @@ estimateModel(Y ~ log(Income)*MPC + Drivers*Miles + Tax)
 ```
 
 So we made some kind of model which works albeit poorly.
+
+```{r}
+plot(lm(Y ~ log(Income)*MPC + Drivers*Miles + Tax, data=df))
+```
+
+After looking at the plots and removing some of the data, I decided to remove several states data from which looked alien to me.
+
+```{r}
+df <- df[!(rownames(df) %in% c("TX", "CA", "NY", "FL")),]
+```
+
+```{r}
+estimateModel(Y ~ log(Income)*MPC + Drivers*Miles + Tax)
+```
+
+Looks like the model now explains the data better, can't say why Texas, California, New York and Florida have such an impact on the model's performance.
