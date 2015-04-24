@@ -22,26 +22,25 @@ names(df)[names(df)=="gamble"] <- "Y"
 ```
 
 ```{r}
-estimateModel <- function(formula) {
-  model <- lm(formula, df)
+estimateModel <- function(formula, dataframe=df) {
+  model <- lm(formula, dataframe)
   print(AIC(model))
   print(summary(model))
-  #print(tune(lm, as.formula(model), data = df, tunecontrol = tune.control(cross = nrow(df))))
   return(model)
 }
 ```
 
 ```{r}
-plotVariable <- function(param) {
+plotVariable <- function(param, dataframe=df) {
   formula <- reformulate(termlabels = param, response = 'Y')
   xyplot(formula, panel=function(...) {  
   panel.xyplot(...)
   panel.loess(...)
-  }, data = df, xlab = param, ylab = "Y")
+  }, data = dataframe, xlab = param, ylab = "Y")
 }
 
-plotVariables <- function(exclude=1) {
-  for (i in colnames(df)[-c(exclude)]) {
+plotVariables <- function(exclude=1, dataframe=df) {
+  for (i in colnames(dataframe)[-c(exclude)]) {
     print(plotVariable(i)) 
   }
 }
@@ -58,18 +57,44 @@ m1 <- estimateModel(Y ~ .)
 Let's try and remove insignificant predictors, looking at AIC
 
 ```{r}
-m2 <- estimateModel(formula(update(m1, . ~ . - status)))
-m3 <- estimateModel(formula(update(m1, . ~ . - status - verbal)))
+m2 <- estimateModel(Y ~ . - status)
+m3 <- estimateModel(Y ~ . - status - verbal)
+```
+
+```{r}
+marginal.plot(df[, !(colnames(df) %in% c("sex"))], data=df, groups=sex)
 ```
 
 Separate data by gender.
 
 ```{r}
-dff <- df[df$sex == "f",][, !(colnames(df) %in% c("sex"))]
-dfm <- df[df$sex == "m",][, !(colnames(df) %in% c("sex"))]
+dff <- df[df$sex == "f",]
+dff$sex <- NULL
+dfm <- df[df$sex == "m",]
+dfm$sex <- NULL
 ```
+
+And look at every sex in turn.
 
 ```{r}
-
+m1m <- estimateModel(Y ~ ., data=dfm)
+m2m <- estimateModel(Y ~ . - status, data=dfm)
+m3m <- estimateModel(Y ~ . - status - verbal, data=dfm)
 ```
 
+Model with verbal, but without status is better by explained deviation and AIC. Higher income leads to more gambling, somehow if you can correctly identify less words than you gamble more, leaves me puzzled, but maybe it shows that a person with broader vocabulary (identifies more words) possibly knows that gambling is bad for the wallet and therefore less likely to gamble?
+
+```{r}
+m1f <- estimateModel(Y ~ ., data=dff)
+m2f <- estimateModel(Y ~ . - verbal, data=dff)
+m3f <- estimateModel(Y ~ . - verbal - income, data=dff)
+```
+
+Regression is not statistically significant, whatever predictor we remove. 
+Looking at the data, we have two huge gamblers (12.00, 19.60), several average ones (5-9) and the rest are low spenders (0-3). Let's try and divide data into two clusters, 0 - 3.99 and 4 - the rest.
+
+```{r}
+dff$Clust <- dff$Y < 4
+m4f <- estimateModel(Y ~ Clust * (. - Clust), data=dff)
+m5f <- estimateModel(Y ~ Clust * (. - verbal - Clust), data=dff)
+```
